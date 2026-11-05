@@ -1,80 +1,94 @@
-# STM32 Firmware Updater
+# Vibration Monitor
 
-A desktop application and custom bootloader firmware for updating STM32 microcontrollers over USB CDC and UART communication.
+A real-time vibration monitoring and signal analysis application developed for STM32-based data acquisition systems.
 
-The project provides a graphical interface for firmware management, flash programming, memory operations, and firmware integrity verification.
+The application receives three-axis acceleration data from an STM32 microcontroller over Ethernet/TCP and provides live signal visualization, frequency-domain analysis, and data recording.
 
 ## Features
 
-- USB CDC and UART communication through serial COM ports
-- Firmware upload using `.bin` files
-- CRC32-based firmware integrity verification
-- Automatic firmware image and vector table validation
-- Flash memory erase and programming
-- Bootloader version, status, and chip identification
-- Flash memory reading and CRC calculation
-- Firmware upload progress monitoring
-- Application jump and microcontroller reset commands
-- Real-time operation logs
+- Real-time three-axis (X, Y, Z) acceleration monitoring
+- Ethernet/TCP communication
+- Live time-domain signal visualization
+- FFT-based frequency spectrum analysis
+- AC RMS acceleration calculation
+- Dominant frequency detection
+- Adjustable sampling frequency
+- Configurable acceleration measurement range
+- Adjustable FFT size and visualization settings
+- FIFO overrun and dropped-sample monitoring
+- CSV data recording and export
+- Built-in simulation mode for testing without hardware
 - Dark-themed Windows desktop interface
 
-## Supported Microcontrollers
+## Hardware
 
-- STM32F407
-- STM32F746
+The current firmware is designed for:
 
-The firmware uses STM32 HAL/CMSIS and a custom communication protocol.
+- STM32F746ZG microcontroller
+- IIS3DWB three-axis digital accelerometer
+- Ethernet communication interface
 
-## Communication Protocol
+The architecture can be adapted to compatible data acquisition hardware.
 
-The bootloader uses a binary packet protocol with the following structure:
+## Signal Analysis
 
-`Header (AA 55) | Length | Command | Sequence | Payload | CRC32`
+### Time-Domain Analysis
 
-Supported commands include:
+The application visualizes acceleration measurements along the X, Y, and Z axes.
 
-| Command | Description |
+Acceleration values are displayed in gravitational units (g).
+
+The time-domain plots allow users to observe vibration amplitude, transient changes, and signal behavior.
+
+### Frequency-Domain Analysis
+
+Fast Fourier Transform (FFT) is used to analyze vibration signals in the frequency domain.
+
+The application provides:
+
+- Frequency spectrum visualization
+- Hann window processing
+- Dominant frequency identification
+- Configurable FFT resolution
+- Three-axis frequency analysis
+
+### AC RMS
+
+AC RMS represents the root mean square of the acceleration signal after removing its mean value.
+
+This measurement helps distinguish vibration from the static acceleration component associated with gravity.
+
+## Communication
+
+The application communicates with the STM32 device using Ethernet/TCP.
+
+Default connection settings:
+
+| Parameter | Default Value |
 |---|---|
-| GET_VERSION | Read bootloader version |
-| GET_HELP | List supported commands |
-| GET_CHIP_ID | Read MCU identification |
-| GET_STATUS | Read bootloader status |
-| START_UPDATE | Initialize firmware update |
-| WRITE_CHUNK | Program firmware data |
-| FINISH_UPDATE | Finalize firmware update |
-| ABORT_UPDATE | Cancel firmware update |
-| JUMP_TO_APP | Start user application |
-| GET_RDP_STATUS | Read protection status |
-| FLASH_ERASE | Erase application flash |
-| MEM_READ | Read memory |
-| GET_FLASH_CRC | Calculate flash CRC32 |
-| RESET | Reset microcontroller |
+| Device IP | `192.168.1.50` |
+| TCP Port | `5000` |
+| Sampling Rate | `26667 Hz` |
+| Accelerometer Range | `±16 g` |
+| Data Format | Binary TCP frames |
 
-## Flash Memory Layout
+The IP address, TCP port, sampling rate, and sensitivity can be configured in the application.
 
-The current firmware configuration uses:
-
-| Region | Start Address |
-|---|---|
-| Bootloader | `0x08000000` |
-| User Application | `0x08020000` |
-
-The application occupies the remaining configured flash region.
-
-Flash memory settings must match the target microcontroller and linker configuration.
+Settings must match the connected hardware and firmware configuration.
 
 ## Installation
 
 ### Windows Executable
 
-Download `FirmwareUpdater.exe` from the GitHub Releases section when a Windows build is available.
+Download `VibrationMonitor.exe` from the GitHub Releases section when a Windows build is available.
 
 ### Python Version
 
 Requirements:
 
 - Python 3.11 or newer (tested development range: 3.11–3.13)
-- PySerial
+- NumPy
+- Matplotlib
 - Windows operating system
 
 Install the dependencies:
@@ -83,32 +97,54 @@ Install the dependencies:
 
 Run the application:
 
-`py -3 firmware_updater.py`
+`py -3 vibration_monitor.py`
 
-Alternatively, launch `run_updater.bat`.
+Alternatively, launch `run_monitor.bat`.
 
 To generate a Windows executable, run `build_windows.bat`. The executable will be created in the `dist` directory.
 
 ## How to Use
 
-1. Connect the STM32 board to your computer.
-2. Enter the bootloader mode.
-3. Open STM32 Firmware Updater.
-4. Select USB CDC or UART and the appropriate COM port.
-5. Establish the connection.
-6. Select a compatible `.bin` firmware file.
-7. Start the firmware update.
-8. Monitor programming progress and CRC32 verification.
-9. Start the user application after a successful update.
+1. Connect the STM32 device to the Ethernet network.
+2. Ensure that the computer and STM32 device can communicate over the network.
+3. Launch Vibration Monitor.
+4. Enter the device IP address and TCP port.
+5. Configure the sampling rate and acceleration measurement range.
+6. Click Connect to start receiving data.
+7. Observe live time-domain and frequency-domain plots.
+8. Adjust the visualization settings as needed.
+9. Start CSV recording to save measurement data.
+
+## Simulation Mode
+
+Vibration Monitor includes a built-in demo mode that generates synthetic acceleration signals.
+
+This mode allows users to explore the interface and test signal visualization without connecting physical hardware.
+
+Simulation data is clearly identified and should not be interpreted as real sensor measurements.
+
+## CSV Data Export
+
+Recorded acceleration data can be exported to CSV format for additional processing.
+
+The recorded data includes:
+
+- Sample index
+- Time in seconds
+- X-axis acceleration (g)
+- Y-axis acceleration (g)
+- Z-axis acceleration (g)
+
+Exported measurements can be analyzed using Python, MATLAB, Excel, or other data analysis tools.
 
 ## Project Structure
 
-- `firmware_updater.py` — Main desktop application
-- `run_updater.bat` — Python application launcher
+- `vibration_monitor.py` — Main desktop application
+- `run_monitor.bat` — Python application launcher
 - `build_windows.bat` — Windows executable build script
 - `requirements.txt` — Python dependencies
-- `firmware/` — STM32 bootloader firmware source code
-- `tests/` — Automated protocol tests
+- `firmware/` — STM32 vibration acquisition firmware
+- `tests/` — Automated software tests
 
 ## Development Environment
 
@@ -117,22 +153,27 @@ To generate a Windows executable, run `build_windows.bat`. The executable will b
 - STM32 HAL / CMSIS
 - CMake / Ninja
 - ARM GNU Toolchain
-- Python / Tkinter / PySerial
+- Python
+- Tkinter
+- NumPy
+- Matplotlib
 
 ## Testing
 
-Protocol parsing, packet generation, CRC32 calculations, and simulated firmware upload operations are covered by software tests.
+The application includes software tests for binary frame decoding, signal processing, and simulated data acquisition.
 
-Physical hardware compatibility and Windows executable functionality should be verified on the target system before deployment.
+Physical sensor operation, Ethernet communication, and Windows executable functionality should be verified with the target hardware.
 
 ## Important Notes
 
-The target STM32 board must already contain a compatible bootloader.
+Accurate vibration measurements require correct accelerometer sensitivity and sampling frequency configuration.
 
-Firmware binaries must use the correct application start address and memory configuration. Flash programming modifies the application region and may invalidate an existing application if the update is interrupted.
+The desktop application and STM32 firmware must use compatible communication protocols.
+
+FFT results depend on the sampling rate, signal quality, and selected analysis window.
 
 ## Version
 
 **v1.0.0 — Initial Release**
 
-Initial standalone release featuring STM32 firmware management, serial communication, flash operations, and firmware verification.
+Initial standalone release featuring real-time vibration monitoring, FFT-based frequency analysis, acceleration statistics, and CSV data recording.
