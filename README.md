@@ -78,30 +78,22 @@ Settings must match the connected hardware and firmware configuration.
 
 ## Installation
 
-### Windows Executable
+### Windows Application
 
-Download `VibrationMonitor.exe` from the GitHub Releases section when a Windows build is available.
+1. Open the GitHub **Releases** section.
+2. Download `VibrationMonitor.exe` from the latest release.
+3. Launch the application on Windows.
+4. Select Demo Mode to explore the application without hardware, or configure an Ethernet/TCP connection for live measurements.
 
-### Python Version
+The standalone executable is designed to run without installing Python or additional Python packages.
 
-Requirements:
+### Hardware Connection
 
-- Python 3.11 or newer (tested development range: 3.11–3.13)
-- NumPy
-- Matplotlib
-- Windows operating system
+For live measurements, connect a compatible STM32 data acquisition device with an IIS3DWB accelerometer.
 
-Install the dependencies:
+Configure the correct device IP address, TCP port, sampling rate, and accelerometer sensitivity in the application.
 
-`py -3 -m pip install -r requirements.txt`
-
-Run the application:
-
-`py -3 vibration_monitor.py`
-
-Alternatively, launch `run_monitor.bat`.
-
-To generate a Windows executable, run `build_windows.bat`. The executable will be created in the `dist` directory.
+**Note:** Real-time measurements require compatible firmware and a working network connection.
 
 ## How to Use
 
